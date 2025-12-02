@@ -53,8 +53,15 @@ export default [
           search: Joi.string().optional(),
           status: Joi.string().optional(),
           prediction: Joi.string().optional(),
+          callStatus: Joi.string().optional(),
+          decisionStatus: Joi.string().optional(),
+          minScore: Joi.number().optional(),
+          maxScore: Joi.number().optional(),
+          minAge: Joi.number().optional(),
+          maxAge: Joi.number().optional(),
           page: Joi.number().default(1),
-          limit: Joi.number().default(20)
+          limit: Joi.number().default(20),
+          sortOrder: Joi.string().valid('asc', 'desc').default('desc')
         })
       }
     }

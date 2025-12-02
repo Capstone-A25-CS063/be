@@ -6,6 +6,7 @@ import { createCustomerSchema } from '../schemas/customer-input.schema.js';
 
 export const listCustomers = async (request, h) => {
   try {
+    // Ambil query params, beri default kalau tidak ada
     const {
       search,
       status,
@@ -16,12 +17,14 @@ export const listCustomers = async (request, h) => {
       maxScore,
       minAge,
       maxAge,
-      limit = 20,
       page = 1,
+      limit = 10,
+      sortOrder = 'desc' // 'desc' = highest first, 'asc' = lowest first
     } = request.query;
 
     const query = {};
 
+    // Search text
     if (search) {
       query.$or = [
         { nama_nasabah: { $regex: search, $options: 'i' } },
@@ -35,7 +38,7 @@ export const listCustomers = async (request, h) => {
       ];
     }
 
-    //  Filter spesifik berdasarkan parameter
+    // Filter spesifik
     if (status) query.status = status;
     if (prediction) query.prediction = prediction;
     if (callStatus) query.callStatus = callStatus;
@@ -48,12 +51,15 @@ export const listCustomers = async (request, h) => {
       if (maxAge) query.age.$lte = Number(maxAge);
     }
 
-    // Filter skor (angka dari string "44.3%")
+    // Filter skor (convert string "44.3%" -> number)
     const scoreFilter = {};
     if (minScore) scoreFilter.$gte = parseFloat(minScore);
     if (maxScore) scoreFilter.$lte = parseFloat(maxScore);
 
-    const skip = (page - 1) * limit;
+    // Hitung skip untuk pagination
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // Pipeline aggregate MongoDB
     const pipeline = [
       {
         $addFields: {
@@ -68,30 +74,60 @@ export const listCustomers = async (request, h) => {
           }
         }
       },
-      { $match: { ...query, ...(Object.keys(scoreFilter).length ? { scoreNum: scoreFilter } : {}) } },
-      { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: Number(limit) }
+      {
+        $match: {
+          ...query,
+          ...(Object.keys(scoreFilter).length ? { scoreNum: scoreFilter } : {})
+        }
+      },
+      { $sort: { scoreNum: sortOrder === 'asc' ? 1 : -1 } }, // Sort by sort order
+      {
+        $setWindowFields: {
+          partitionBy: null,
+          sortBy: { scoreNum: sortOrder === 'asc' ? 1 : -1 },
+          output: {
+            rank: {
+              $documentNumber: {}
+            }
+          }
+        }
+      },
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: Number(limit) }
+          ],
+          count: [{ $count: 'total' }]
+        }
+      }
     ];
 
-    const [items, totalCount] = await Promise.all([
-      Customer.aggregate(pipeline),
-      Customer.countDocuments(query)
-    ]);
+    // Jalankan query dan count total
+    const result = await Customer.aggregate(pipeline);
+    const items = result[0]?.data || [];
+    const totalCount = result[0]?.count?.[0]?.total || await Customer.countDocuments(query);
 
+    // Response
     return h.response({
       total: totalCount,
       page: Number(page),
       limit: Number(limit),
       count: items.length,
+      skip: skip,
+      sortOrder: sortOrder,
       data: items
     }).code(200);
 
   } catch (error) {
     console.error('❌ Error fetching customers:', error);
-    return h.response({ message: 'Failed to fetch customers', error: error.message }).code(500);
+    return h.response({
+      message: 'Failed to fetch customers',
+      error: error.message
+    }).code(500);
   }
 };
+
 
 
 
@@ -200,6 +236,8 @@ export const importBatch = async (request, h) => {
 
     // Simpan hasil prediksi ke MongoDB
     const docs = hasil.hasil_batch.map((row) => ({
+      nama_nasabah: row.nama_nasabah,
+      nomor_telepon: row.nomor_telepon,
       age: Number(row.age),
       job: row.job,
       marital: row.marital,
