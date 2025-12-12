@@ -1,4 +1,3 @@
-// ...existing code...
 # Bank Marketing Backend API
 
 Backend API untuk sistem **prioritisasi nasabah deposito berjangka** berbasis Machine Learning.  
