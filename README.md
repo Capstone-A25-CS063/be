@@ -46,7 +46,18 @@ npm run start
 ```
 http://localhost:3000/documentation
 ```
+## Akun Default
 
+Ketika aplikasi pertama kali dijalankan, akan dibuat akun admin dan sales default:
+
+- Admin
+  - Email: admin@gmail.com
+  - Password: password123
+
+- Sales
+  - Email: sales@gmail.com
+  - Password: password123
+  
 ## Struktur Endpoint (Ringkasan)
 
 Authentication
