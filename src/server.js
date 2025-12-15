@@ -4,7 +4,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import customerRoutes from './routes/customers.routes.js';
 import importRoutes from './routes/import.routes.js';
-import userRoutes from './routes/user.routes.js';
+import userRoutes from './routes/users.routes.js';
 
 // 🧩 Tambahkan plugin pendukung untuk swagger
 import Inert from '@hapi/inert';

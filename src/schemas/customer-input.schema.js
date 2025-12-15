@@ -16,6 +16,7 @@ export const createCustomerSchema = Joi.object({
   month: Joi.string().required(),
   day_of_week: Joi.string().required(),
   campaign: Joi.number().integer().min(1).required(),
+  duration: Joi.number().integer().min(1).required(),
   pdays: Joi.number().integer().min(0).required(),
   previous: Joi.number().integer().min(0).required(),
   poutcome: Joi.string().required()

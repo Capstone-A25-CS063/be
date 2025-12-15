@@ -19,24 +19,36 @@ Aplikasi ini dipakai oleh tim sales & admin bank untuk mengelola data nasabah, m
 - External ML API (FastAPI)
 
 ## Persiapan & Menjalankan Proyek (Quick Start)
+
 1. Clone repository
-   git clone https://github.com/Capstone-A25-CS063/be
-   cd be
+```bash
+git clone https://github.com/Capstone-A25-CS063/be.git
+cd be
+```
 
 2. Install dependensi
-   npm install
+```bash
+npm install
+```
 
 3. Salin file environment dan sesuaikan
-   cp .env.example .env
-   (Edit .env sesuai konfigurasi: DB, JWT secret, ML API URL, dll.)
+```bash
+cp .env.example .env
+# Edit .env sesuai konfigurasi: DB, JWT_SECRET, ML_API_URL, dll.
+```
 
 4. Jalankan server (development)
-   npm run dev
+```bash
+npm run start
+```
 
 5. Buka dokumentasi Swagger
-   http://localhost:3000/documentation
+```
+http://localhost:3000/documentation
+```
 
 ## Struktur Endpoint (Ringkasan)
+
 Authentication
 - POST /auth/login — Login dan dapatkan JWT
 - POST /auth/register — Registrasi user baru (khusus admin)

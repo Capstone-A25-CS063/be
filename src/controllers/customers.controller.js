@@ -60,48 +60,29 @@ export const listCustomers = async (request, h) => {
     const skip = (Number(page) - 1) * Number(limit);
 
     // Pipeline aggregate MongoDB
-    const pipeline = [
-      {
-        $addFields: {
-          scoreNum: {
-            $toDouble: {
-              $substr: [
-                "$score",
-                0,
-                { $subtract: [{ $strLenCP: "$score" }, 1] }
-              ]
-            }
-          }
-        }
-      },
-      {
-        $match: {
-          ...query,
-          ...(Object.keys(scoreFilter).length ? { scoreNum: scoreFilter } : {})
-        }
-      },
-      { $sort: { scoreNum: sortOrder === 'asc' ? 1 : -1 } }, // Sort by sort order
-      {
-        $setWindowFields: {
-          partitionBy: null,
-          sortBy: { scoreNum: sortOrder === 'asc' ? 1 : -1 },
-          output: {
-            rank: {
-              $documentNumber: {}
-            }
-          }
-        }
-      },
-      {
-        $facet: {
-          data: [
-            { $skip: skip },
-            { $limit: Number(limit) }
-          ],
-          count: [{ $count: 'total' }]
-        }
+const pipeline = [
+  { $match: { ...query } },
+  {
+    $addFields: {
+      scoreNum: {
+        $cond: [
+          { $eq: [{ $type: "$score" }, "string"] },
+          { $toDouble: { $replaceAll: { input: "$score", find: "%", replacement: "" } } },
+          null
+        ]
       }
-    ];
+    }
+  },
+  ...(Object.keys(scoreFilter).length ? [{ $match: { scoreNum: scoreFilter } }] : []),
+  { $sort: { scoreNum: sortOrder === 'asc' ? 1 : -1 } },
+  {
+    $facet: {
+      data: [{ $skip: skip }, { $limit: Number(limit) }],
+      count: [{ $count: 'total' }]
+    }
+  }
+];
+
 
     // Jalankan query dan count total
     const result = await Customer.aggregate(pipeline);

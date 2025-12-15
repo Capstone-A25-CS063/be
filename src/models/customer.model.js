@@ -12,6 +12,7 @@ const customerSchema = new mongoose.Schema({
   loan: String,
   contact: String,
   month: String,
+  duration: Number,
   day_of_week: String,
   campaign: Number,
   pdays: Number,

@@ -16,6 +16,7 @@ export const importCsv = async (request, h) => {
     housing: r.housing,
     loan: r.loan,
     month: r.month,
+    duration: Number(r.duration),
     dayOfWeek: r.day_of_week,
     euribor3m: Number(r.euribor3m),
     y: r.y,
